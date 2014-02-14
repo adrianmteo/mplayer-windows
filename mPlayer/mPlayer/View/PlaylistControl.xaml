@@ -1,0 +1,277 @@
+﻿<Popup x:Class="mPlayer.View.PlaylistControl" x:Name="Playlist"
+       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+       xmlns:model="clr-namespace:mPlayer.Model" 
+       xmlns:settings="clr-namespace:mPlayer.Properties"
+       xmlns:local="clr-namespace:mPlayer.View"
+       mc:Ignorable="d" d:DesignHeight="300" d:DesignWidth="500"
+       StaysOpen="False" PopupAnimation="Fade" AllowsTransparency="True" Placement="Custom">
+
+    <Popup.Resources>
+        <!-- Converters -->
+        <model:SecondsToTimeConverter x:Key="SecondsToTimeConverter" />
+        <model:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <model:NegateBoolToVisibilityConverter x:Key="NegateBoolToVisibilityConverter" />
+        <!-- Styles -->
+        <Style x:Key="ListBoxSimpleStyle" TargetType="{x:Type ListBox}">
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+            <Setter Property="ScrollViewer.CanContentScroll" Value="True" />
+            <Setter Property="ScrollViewer.PanningMode" Value="VerticalOnly" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ListBox}">
+                        <ScrollViewer Focusable="False">
+                            <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                        </ScrollViewer>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="ItemContainerStyle">
+                <Setter.Value>
+                    <Style TargetType="{x:Type ListBoxItem}">
+                        <Setter Property="FontSize" Value="12" />
+                        <Setter Property="Foreground" Value="#383838" />
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                                    <Border x:Name="Border" Background="Transparent">
+                                        <ContentPresenter Margin="15,10,20,10" />
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Border" Property="Background" Value="#ededed" />
+                                        </Trigger>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter TargetName="Border" Property="Background" Value="#d9d9d9" />
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- ListBox Templates -->
+        <DataTemplate x:Key="FileDataTemplate">
+            <CheckBox IsChecked="{Binding Path=IsChecked, Mode=TwoWay}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <Path Data="M59.47265625,16.6511459350586L60.744140625,17.2458724975586 61.8720703125,17.9636459350586 62.794921875,18.6814193725586 63.451171875,19.2761459350586 80.8828125,36.7077865600586 81.4775390625,37.3640365600586 82.1953125,38.2868881225586 82.9130859375,39.4148178100586 83.5078125,40.6863021850586 59.47265625,40.6863021850586 59.47265625,16.6511459350586z M23.419921875,16.6511459350586L51.43359375,16.6511459350586 51.43359375,48.6843490600586 83.5078125,48.6843490600586 83.5078125,92.7351303100586 83.2001953125,94.2732162475586 82.3388671875,95.5447006225586 81.046875,96.4265365600586 79.48828125,96.7546615600586 23.419921875,96.7546615600586 21.861328125,96.4265365600586 20.58984375,95.5447006225586 19.7490234375,94.2732162475586 19.44140625,92.7351303100586 19.44140625,20.6706771850586 19.728515625,19.1172103881836 20.58984375,17.8200912475586 21.87158203125,16.9433822631836 23.419921875,16.6511459350586z"
+                      Stretch="Uniform" Height="14" Fill="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListBoxItem}, Path=Foreground}" RenderOptions.EdgeMode="Aliased" />
+                    <TextBlock Grid.Column="1" Margin="5,0,0,0" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                </Grid>
+            </CheckBox>
+        </DataTemplate>
+        <DataTemplate x:Key="FolderDataTemplate">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <Path Data="M22.4765625,19.8503646850586L41.58984375,19.8503646850586 44.1328125,20.4245834350586 46.306640625,21.8191146850586 53.484375,29.8991928100586 55.6787109375,31.2937240600586 58.201171875,31.8679428100586 88.67578125,31.8679428100586 89.767822265625,32.0730247497559 90.6650390625,32.6882553100586 91.264892578125,33.5906028747559 91.46484375,34.6570053100586 91.46484375,85.1472396850586 91.264892578125,86.2085189819336 90.6650390625,87.0954818725586 89.767822265625,87.6953353881836 88.67578125,87.8952865600586 14.19140625,87.8952865600586 13.0993642807007,87.6953353881836 12.2021484375,87.0954818725586 11.602294921875,86.2085189819336 11.40234375,85.1472396850586 11.40234375,30.9245834350586 11.9765634536743,28.4021224975586 13.37109375,26.2077865600586 17.80078125,21.8191146850586 19.974609375,20.3425521850586 22.4765625,19.8503646850586z"
+                      Stretch="Uniform" Height="14" Fill="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListBoxItem}, Path=Foreground}" RenderOptions.EdgeMode="Aliased" />
+                <TextBlock Grid.Column="1" Margin="5,0,0,0" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+            </Grid>
+        </DataTemplate>
+        <local:ExplorerTemplateSelector x:Key="ExplorerTemplateSelector" FileTemplate="{StaticResource FileDataTemplate}" FolderTemplate="{StaticResource FolderDataTemplate}" />
+    </Popup.Resources>
+
+    <Grid>
+        <Grid Margin="7" Width="320" Height="350">
+            <Grid.Effect>
+                <DropShadowEffect ShadowDepth="0" BlurRadius="7" Opacity="0.6" />
+            </Grid.Effect>
+            <Path Data="M 0 0 L 16 0 L 8 7" Fill="{Binding Settings.Theme}" VerticalAlignment="Bottom" HorizontalAlignment="Center" />
+            <Border Margin="0,0,0,7" Background="#f6f6f6" BorderThickness="5" BorderBrush="{Binding Settings.Theme}">
+                <TabControl>
+                    <TabItem Header="Now playing">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <ListBox x:Name="ListPlaylist" ItemsSource="{Binding Playlist.Items}" SelectionMode="Extended" AllowDrop="True" Style="{StaticResource ListBoxSimpleStyle}"
+                                     MouseDoubleClick="ListPlaylist_MouseDoubleClick" DragOver="ListPlaylist_DragOver" Drop="ListPlaylist_Drop" >
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Background="Transparent">
+                                            <Grid.ToolTip>
+                                                <StackPanel>
+                                                    <TextBlock>Title: <Run Text="{Binding Title}" /></TextBlock>
+                                                    <TextBlock>Artist: <Run Text="{Binding Artist}" /></TextBlock>
+                                                    <TextBlock>Album: <Run Text="{Binding Album}" /></TextBlock>
+                                                    <TextBlock>Genre: <Run Text="{Binding Genre}" /></TextBlock>
+                                                </StackPanel>
+                                            </Grid.ToolTip>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock TextTrimming="CharacterEllipsis" IsHitTestVisible="False">
+                                                <Run Text="{Binding Artist}" /> - <Run Text="{Binding Title}" />
+                                            </TextBlock>
+                                            <TextBlock Grid.Column="1" Margin="10,0,0,0" Text="{Binding Path=Duration, Converter={StaticResource SecondsToTimeConverter}}" IsHitTestVisible="False" />
+                                            <Button x:Name="Reorder" Cursor="SizeAll" Width="30" HorizontalAlignment="Left" PreviewMouseLeftButtonDown="ButtonReorder_PreviewMouseLeftButtonDown">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="Transparent" />
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" />
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                            <Border Grid.Row="1" Padding="10" Background="#f6f6f6" BorderThickness="0,1,0,0" BorderBrush="#dbdbdb" SnapsToDevicePixels="True">
+                                <Grid Height="24">
+                                    <TextBlock Text="{Binding Playlist.Status}" Foreground="#383838" FontSize="12" Visibility="{Binding Path=Playlist.IsBusy, Converter={StaticResource BoolToVisibilityConverter}}" VerticalAlignment="Center" />
+                                    <Grid Visibility="{Binding Path=Playlist.IsBusy, Converter={StaticResource NegateBoolToVisibilityConverter}}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Button Padding="0" Width="30" Click="ButtonAddFiles_Click">
+                                                <Path Data="M39.9375,32.9527053833008L56.0625,32.9527053833008 56.0625,59.8120803833008 82.96875,59.8120803833008 82.96875,75.9370803833008 56.0625,75.9370803833008 56.0625,102.796455383301 39.9375,102.796455383301 39.9375,75.9370803833008 13.078125,75.9370803833008 13.078125,59.8120803833008 39.9375,59.8120803833008 39.9375,32.9527053833008z"
+                                                  Fill="#383838" Stretch="Uniform" Width="10" RenderOptions.EdgeMode="Aliased" />
+                                            </Button>
+                                            <Button Padding="0" Width="30" BorderThickness="0,1,1,1" Click="ButtonRemoveItems_Click">
+                                                <Path Data="M11.443359375,52.3347396850586L72.59765625,52.3347396850586 72.59765625,66.4441146850586 11.443359375,66.4441146850586 11.443359375,52.3347396850586z"
+                                                  Fill="#383838" Stretch="Uniform" Width="10" RenderOptions.EdgeMode="Aliased" />
+                                            </Button>
+                                            <Button Padding="0" Width="30" BorderThickness="0,1,1,1" Click="ButtonAddFolder_Click">
+                                                <Path Data="M22.4765625,19.8503646850586L41.58984375,19.8503646850586 44.1328125,20.4245834350586 46.306640625,21.8191146850586 53.484375,29.8991928100586 55.6787109375,31.2937240600586 58.201171875,31.8679428100586 88.67578125,31.8679428100586 89.767822265625,32.0730247497559 90.6650390625,32.6882553100586 91.264892578125,33.5906028747559 91.46484375,34.6570053100586 91.46484375,85.1472396850586 91.264892578125,86.2085189819336 90.6650390625,87.0954818725586 89.767822265625,87.6953353881836 88.67578125,87.8952865600586 14.19140625,87.8952865600586 13.0993642807007,87.6953353881836 12.2021484375,87.0954818725586 11.602294921875,86.2085189819336 11.40234375,85.1472396850586 11.40234375,30.9245834350586 11.9765634536743,28.4021224975586 13.37109375,26.2077865600586 17.80078125,21.8191146850586 19.974609375,20.3425521850586 22.4765625,19.8503646850586z"
+                                                  Fill="#383838" Stretch="Uniform" Width="12" RenderOptions.EdgeMode="Aliased" />
+                                            </Button>
+                                            <Button Padding="0" Width="30" BorderThickness="0,1,1,1" Click="ButtonShowCurrent_Click">
+                                                <Path Data="M51.43359375,56.8054428100586L54.6584434509277,57.1181869506836 57.6884765625,58.0564193725586 60.4313926696777,59.5381088256836 62.794921875,61.4812240600586 64.738037109375,63.8396224975586 66.2197265625,66.5671615600586 67.157958984375,69.5818099975586 67.470703125,72.8015365600586 67.157958984375,76.0212631225586 66.2197265625,79.0359115600586 64.738037109375,81.7685775756836 62.794921875,84.1423568725586 60.4313926696777,86.1008529663086 57.6884765625,87.5876693725586 54.6584434509277,88.5259017944336 51.43359375,88.8386459350586 48.2189903259277,88.5259017944336 45.2197265625,87.5876693725586 42.507568359375,86.1008529663086 40.154296875,84.1423568725586 38.211181640625,81.7685775756836 36.7294921875,79.0359115600586 35.791259765625,76.0212631225586 35.478515625,72.8015365600586 35.791259765625,69.5818099975586 36.7294921875,66.5671615600586 38.211181640625,63.8396224975586 40.154296875,61.4812240600586 42.507568359375,59.5381088256836 45.2197265625,58.0564193725586 48.2189903259277,57.1181869506836 51.43359375,56.8054428100586z M51.43359375,28.7507553100586L57.9499473571777,29.1455345153809 64.2099609375,30.3298568725586 70.14697265625,32.2319602966309 75.6943359375,34.7800521850586 80.805908203125,37.9382591247559 85.435546875,41.6706771850586 89.50634765625,45.9106674194336 92.94140625,50.5915756225586 95.7099533081055,55.6723861694336 97.78125,61.1120834350586 99.0732345581055,66.8440170288086 99.50390625,72.8015365600586 90.64453125,72.8015365600586 90.2958984375,68.0488510131836 89.25,63.4704818725586 87.563232421875,59.1228256225586 85.2919921875,55.0622787475586 82.477294921875,51.3247299194336 79.16015625,47.9460678100586 75.391845703125,44.9724349975586 71.2236328125,42.4499740600586 66.696533203125,40.4145774841309 61.8515625,38.9021224975586 56.7451133728027,37.9638938903809 51.43359375,37.6511459350586 46.127197265625,37.9638938903809 41.0361328125,38.9021224975586 36.211669921875,40.4145774841309 31.705078125,42.4499740600586 27.5522441864014,44.9724349975586 23.7890625,47.9460678100586 20.471923828125,51.3247299194336 17.6572265625,55.0622787475586 15.3859853744507,59.1228256225586 13.6992177963257,63.4704818725586 12.6533193588257,68.0488510131836 12.3046875,72.8015365600586 3.404296875,72.8015365600586 3.8349609375,66.8440170288086 5.12695360183716,61.1120834350586 7.20336866378784,55.6723861694336 9.9873046875,50.5915756225586 13.4377431869507,45.9106674194336 17.513671875,41.6706771850586 22.13818359375,37.9382591247559 27.234375,34.7800521850586 32.766357421875,32.2319602966309 38.6982421875,30.3298568725586 44.947998046875,29.1455345153809 51.43359375,28.7507553100586z"
+                                                  Fill="#383838" Stretch="Uniform" Width="13" />
+                                            </Button>
+                                        </StackPanel>
+                                        <TextBox Margin="10,0,0,0" Grid.Column="1" TextChanged="TextBoxSearch_TextChanged" />
+                                    </Grid>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </TabItem>
+                    <TabItem Header="Playlists">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <ListBox x:Name="ListSavedPlaylists" ItemsSource="{Binding Playlist.SavedPlaylists}" SelectionMode="Extended" Style="{StaticResource ListBoxSimpleStyle}">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Name}" />
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                            <Border Grid.Row="1" Padding="10" Background="#f6f6f6" BorderThickness="0,1,0,0" BorderBrush="#dbdbdb" SnapsToDevicePixels="True">
+                                <Grid Height="24">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox x:Name="TextPlaylistName" />
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                        <Button Padding="0" Width="30" BorderThickness="0,1,1,1" Click="ButtonSavePlaylist_Click">
+                                            <Path Data="M39.9375,32.9527053833008L56.0625,32.9527053833008 56.0625,59.8120803833008 82.96875,59.8120803833008 82.96875,75.9370803833008 56.0625,75.9370803833008 56.0625,102.796455383301 39.9375,102.796455383301 39.9375,75.9370803833008 13.078125,75.9370803833008 13.078125,59.8120803833008 39.9375,59.8120803833008 39.9375,32.9527053833008z"
+                                                  Fill="#383838" Stretch="Uniform" Width="10" RenderOptions.EdgeMode="Aliased" />
+                                        </Button>
+                                        <Button Margin="10,0,0,0" Padding="0" Width="30" Click="ButtonLoadPlaylist_Click">
+                                            <Path Data="M80.841796875,20.7116928100586L81.990234375,21.1218490600586 90.234375,27.4792709350586 90.7060546875,28.0739974975586 90.931640625,28.7917709350586 90.521484375,30.1042709350586 44.501953125,89.2077865600586 15.052734375,57.5027084350586 12.427734375,54.6726303100586 11.9765625,53.4421615600586 12.591796875,52.0476303100586 20.138671875,44.9519271850586 21.41015625,44.5007553100586 22.1484375,44.6443099975586 22.763671875,45.0749740600586 43.55859375,67.5105209350586 79.365234375,21.4089584350586 80.841796875,20.7116928100586z"
+                                                  Fill="#383838" Stretch="Uniform" Width="11" />
+                                        </Button>
+                                        <Button Padding="0" Width="30" BorderThickness="0,1,1,1" Click="ButtonDeletePlaylist_Click">
+                                            <Path Data="M11.443359375,52.3347396850586L72.59765625,52.3347396850586 72.59765625,66.4441146850586 11.443359375,66.4441146850586 11.443359375,52.3347396850586z"
+                                                  Fill="#383838" Stretch="Uniform" Width="10" RenderOptions.EdgeMode="Aliased" />
+                                        </Button>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </TabItem>
+                    <TabItem Header="Home sharing" Visibility="{Binding Path=Settings.EnableSharing, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <Grid>
+                            <Grid Margin="35,0" Visibility="{Binding Path=Sharing.IsConnected, Converter={StaticResource NegateBoolToVisibilityConverter}}">
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="Your IP address:" Foreground="#383838" FontSize="18" HorizontalAlignment="Center" />
+                                    <TextBlock Margin="0,0,0,20" Text="{Binding Sharing.LocalAddress}" Foreground="#383838" FontSize="32" HorizontalAlignment="Center" />
+                                    <TextBlock Text="Connect to IP address" Foreground="#383838" FontSize="14" />
+                                    <TextBox Margin="0,0,0,10" Text="{Binding Path=Sharing.Address, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <Button Content="Connect" HorizontalAlignment="Center" Click="ButtonConnect_Click" />
+                                </StackPanel>
+                            </Grid>
+                            <Grid Visibility="{Binding Path=Sharing.IsConnected, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <ListBox ItemsSource="{Binding Sharing.NavigationList}" MouseDoubleClick="ListBoxExplorer_MouseDoubleClick" Style="{StaticResource ListBoxSimpleStyle}"
+                                         ItemTemplateSelector="{StaticResource ExplorerTemplateSelector}" />
+                                <Border Grid.Row="1" Padding="10" Background="#f6f6f6" BorderThickness="0,1,0,0" BorderBrush="#dbdbdb" SnapsToDevicePixels="True">
+                                    <Grid Height="24">
+                                        <Grid Visibility="{Binding Path=Sharing.IsDownloading, Converter={StaticResource BoolToVisibilityConverter}}">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Margin="0,0,10,0">
+                                                <TextBlock FontSize="12" TextTrimming="CharacterEllipsis">
+                                                    [<Run Text="{Binding Sharing.Progress}" />%] <Run Text="{Binding Sharing.CurrentFile}" />
+                                                </TextBlock>
+                                                <ProgressBar Value="{Binding Sharing.TotalProgress}" Height="6" />
+                                            </StackPanel>
+                                            <Grid Grid.Column="1">
+                                                <Button Padding="0" Width="30" Click="ButtonCancel_Click">
+                                                    <Path Data="M27.931640625,23.0905990600586L51.392578125,46.5515365600586 74.89453125,23.0905990600586 84.861328125,33.0163803100586 61.359375,56.5183334350586 84.861328125,80.0202865600586 74.89453125,89.9460678100586 51.392578125,66.4851303100586 27.931640625,89.9460678100586 18.005859375,79.9792709350586 41.466796875,56.5183334350586 18.005859375,33.0573959350586 27.931640625,23.0905990600586z"
+                                                          Fill="#383838" Stretch="Uniform" Width="10" RenderOptions.EdgeMode="Aliased" />
+                                                </Button>
+                                            </Grid>
+                                        </Grid>
+                                        <Grid Visibility="{Binding Path=Sharing.IsDownloading, Converter={StaticResource NegateBoolToVisibilityConverter}}">
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                                <Button Margin="0,0,10,0" Padding="0" Width="30" HorizontalAlignment="Left" Click="ButtonDownload_Click">
+                                                    <Path Data="M34.359375,97.1714553833008L83.25,97.1714553833008 84.3515625,97.3589553833008 84.9375,97.8277053833008 85.1484375,98.4370803833008 85.171875,99.0933303833008 85.171875,108.843330383301 85.1484375,109.640205383301 84.9375,110.319892883301 84.3515625,110.812080383301 83.25,110.999580383301 34.359375,110.999580383301 33.0703125,110.319892883301 32.4375,108.843330383301 32.4375,99.0933303833008 33.0703125,97.8042678833008 34.359375,97.1714553833008z M51.984375,15.1402053833008L65.625,15.1402053833008 65.625,63.9839553833008 85.171875,42.5620803833008 85.171875,60.1402053833008 58.828125,88.4527053833008 32.4375,60.1402053833008 32.4375,42.5620803833008 51.984375,63.9839553833008 51.984375,15.1402053833008z"
+                                                      Fill="#383838" Stretch="Uniform" Width="7" />
+                                                </Button>
+                                                <Button Padding="0" Width="30" Click="ButtonSelectAll_Click">
+                                                    <Path Data="M90.029296875,25.3874740600586L102.94921875,35.0261459350586 61.400390625,97.0417709350586 60.005859375,97.0417709350586 24.404296875,66.2800521850586 34.453125,53.1140365600586 57.9140625,73.3347396850586 90.029296875,25.3874740600586z M15.83203125,12.9187240600586L15.83203125,109.510520935059 112.423828125,109.510520935059 112.423828125,12.9187240600586 15.83203125,12.9187240600586z M5.82421875,2.91091156005859L122.431640625,2.91091156005859 122.431640625,119.518333435059 5.82421875,119.518333435059 5.82421875,2.91091156005859z"
+                                                      Fill="#383838" Stretch="Uniform" Width="12" />
+                                                </Button>
+                                                <Button Padding="0" Width="30" BorderThickness="0,1,1,1" Click="ButtonSelectNone_Click">
+                                                    <Path Data="M15.83203125,12.9187240600586L15.83203125,109.510520935059 112.423828125,109.510520935059 112.423828125,12.9187240600586 15.83203125,12.9187240600586z M5.82421875,2.91091156005859L122.431640625,2.91091156005859 122.431640625,119.518333435059 5.82421875,119.518333435059 5.82421875,2.91091156005859z"
+                                                      Fill="#383838" Stretch="Uniform" Width="12" />
+                                                </Button>
+                                            </StackPanel>
+                                            <Button Padding="0" Width="30" HorizontalAlignment="Right" Click="ButtonDisconnect_Click">
+                                                <Path Data="M27.931640625,23.0905990600586L51.392578125,46.5515365600586 74.89453125,23.0905990600586 84.861328125,33.0163803100586 61.359375,56.5183334350586 84.861328125,80.0202865600586 74.89453125,89.9460678100586 51.392578125,66.4851303100586 27.931640625,89.9460678100586 18.005859375,79.9792709350586 41.466796875,56.5183334350586 18.005859375,33.0573959350586 27.931640625,23.0905990600586z"
+                                                      Fill="#383838" Stretch="Uniform" Width="10" RenderOptions.EdgeMode="Aliased" />
+                                            </Button>
+                                        </Grid>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+                </TabControl>
+            </Border>
+        </Grid>
+    </Grid>
+
+</Popup>

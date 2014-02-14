@@ -1,0 +1,101 @@
+﻿<Window x:Class="mPlayer.MainWindow" x:Name="RootWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:model="clr-namespace:mPlayer.Model"
+        xmlns:view="clr-namespace:mPlayer.View"
+        mc:Ignorable="d" Title="mPlayer" Width="800" Height="450" MinWidth="800" MinHeight="450" WindowStartupLocation="Manual" Icon="Images/icon.ico"
+        Background="White" SizeChanged="Window_SizeChanged" LocationChanged="Window_LocationChanged" StateChanged="Window_StateChanged">
+    
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="36" UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
+
+    <Window.Resources>
+        <model:PlayThumbStyleConverter x:Key="PlayThumbStyleConverter" />
+        <model:PlayStyleConverter x:Key="PlayStyleConverter" />
+        <model:SecondsToTimeConverter x:Key="SecondsToTimeConverter" />
+        <model:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <model:NegateBoolToVisibilityConverter x:Key="NegateBoolToVisibilityConverter" />
+        <model:ObjectToVisibilityConverter x:Key="ObjectToVisibilityConverter" />
+    </Window.Resources>
+    
+    <Window.TaskbarItemInfo>
+        <TaskbarItemInfo>
+            <TaskbarItemInfo.ThumbButtonInfos>
+                <ThumbButtonInfo ImageSource="Images/prev.png" Click="ThumbButtonPrev_Click" />
+                <ThumbButtonInfo ImageSource="{Binding Path=IsPlaying, Converter={StaticResource PlayThumbStyleConverter}}" Click="ThumbButtonPlay_Click" />
+                <ThumbButtonInfo ImageSource="Images/next.png" Click="ThumbButtonNext_Click" />
+            </TaskbarItemInfo.ThumbButtonInfos>
+        </TaskbarItemInfo>
+    </Window.TaskbarItemInfo>
+
+    <Border Background="White" BorderThickness="5" BorderBrush="{Binding Settings.Theme}">
+        <Grid x:Name="RootGrid">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="36" />
+                <RowDefinition />
+                <RowDefinition Height="110" />
+            </Grid.RowDefinitions>
+            <!-- Slideshow -->
+            <view:SlideshowControl x:Name="SlideshowView" Grid.RowSpan="3" CurrentSong="{Binding CurrentPlaying}" />
+            <!-- Header -->
+            <Grid>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" WindowChrome.IsHitTestVisibleInChrome="True">
+                    <Button Foreground="{Binding ElementName=SlideshowView, Path=Foreground}" Style="{StaticResource SettingsButtonStyle}" Click="ButtonSettings_Click" />
+                    <Rectangle Fill="{Binding ElementName=SlideshowView, Path=Foreground}" Margin="5,9" Width="1" Opacity="0.5" />
+                    <Button Foreground="{Binding ElementName=SlideshowView, Path=Foreground}" Style="{StaticResource MinimizeButtonStyle}" Click="ButtonMinimize_Click" />
+                    <Button Foreground="{Binding ElementName=SlideshowView, Path=Foreground}" x:Name="ButtonMaximize" Style="{StaticResource MaximizeButtonStyle}" Click="ButtonMaximize_Click" />
+                    <Button Foreground="{Binding ElementName=SlideshowView, Path=Foreground}" Style="{StaticResource CloseButtonStyle}" Click="ButtonClose_Click" />
+                </StackPanel>
+            </Grid>
+            <!-- Footer -->
+            <Grid Grid.Row="2">
+                <Grid Margin="0,15,0,20" Width="600" HorizontalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="50" />
+                        <ColumnDefinition />
+                        <ColumnDefinition Width="50" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="25" />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <TextBlock Foreground="{Binding ElementName=SlideshowView, Path=Foreground}" FontSize="11" Text="{Binding ElementName=SliderSeek, Path=Value, Converter={StaticResource SecondsToTimeConverter}}" VerticalAlignment="Top" HorizontalAlignment="Left" />
+                    <TextBlock Foreground="{Binding ElementName=SlideshowView, Path=Foreground}" FontSize="11" Grid.Column="2" Text="{Binding Path=Duration, Converter={StaticResource SecondsToTimeConverter}}" VerticalAlignment="Top" HorizontalAlignment="Right" />
+                    <Slider Foreground="{Binding ElementName=SlideshowView, Path=Foreground}" Grid.Column="1" x:Name="SliderSeek" Margin="0,2,0,0" Value="0" Minimum="0" Maximum="{Binding Duration}" IsMoveToPointEnabled="True" VerticalAlignment="Top" ValueChanged="SliderSeek_ValueChanged" PreviewMouseLeftButtonUp="SliderSeek_PreviewMouseLeftButtonUp" />
+                    <Grid Grid.Column="1" Grid.Row="1">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
+                            <ToggleButton Foreground="{Binding ElementName=SlideshowView, Path=Foreground}" IsChecked="{Binding Path=Settings.Repeat, Mode=TwoWay}" Style="{StaticResource RepeatToggleButtonStyle}" />
+                            <ToggleButton Foreground="{Binding ElementName=SlideshowView, Path=Foreground}" IsChecked="{Binding Path=Settings.Shuffle, Mode=TwoWay}" Style="{StaticResource ShuffleToggleButtonStyle}" />
+                            <Button Foreground="{Binding ElementName=SlideshowView, Path=Foreground}" x:Name="ButtonPlaylist" Style="{StaticResource PlaylistButtonStyle}">
+                                <Button.Triggers>
+                                    <EventTrigger RoutedEvent="Button.Click">
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <BooleanAnimationUsingKeyFrames Storyboard.TargetName="PlaylistView" Storyboard.TargetProperty="IsOpen">
+                                                    <DiscreteBooleanKeyFrame KeyTime="0" Value="True" />
+                                                </BooleanAnimationUsingKeyFrames>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Button.Triggers>
+                            </Button>
+                            <view:PlaylistControl x:Name="PlaylistView" PlacementTarget="{Binding ElementName=ButtonPlaylist}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <Button Foreground="{Binding ElementName=SlideshowView, Path=Foreground}" Style="{StaticResource PreviousButtonStyle}" Click="ButtonPrev_Click" />
+                            <Button Foreground="{Binding ElementName=SlideshowView, Path=Foreground}" Style="{Binding Path=IsPlaying, Converter={StaticResource PlayStyleConverter}}" Click="ButtonPlay_Click" />
+                            <Button Foreground="{Binding ElementName=SlideshowView, Path=Foreground}" Style="{StaticResource ForwardButtonStyle}" Click="ButtonNext_Click" />
+                        </StackPanel>
+                        <Grid Width="120" VerticalAlignment="Center" HorizontalAlignment="Right">
+                            <Slider Foreground="{Binding ElementName=SlideshowView, Path=Foreground}" Value="{Binding Path=Settings.Volume, Mode=TwoWay}" Maximum="1" IsMoveToPointEnabled="True" />
+                        </Grid>
+                    </Grid>
+                </Grid>
+            </Grid>
+        </Grid>
+    </Border>
+
+</Window>
